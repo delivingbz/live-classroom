@@ -1,11 +1,59 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { useState } from "react";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (
+  event: React.FormEvent<HTMLFormElement>
+) => {
+  event.preventDefault();
+
+  setError("");
+
+  if (!email || !password) {
+    setError("Please enter your email and password.");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    });
+
+    const data = await response.json();
+
+    console.log("Login response:", data);
+
+    if (!response.ok) {
+      setError(data.error || "Login failed.");
+      return;
+    }
+
+   router.push("/dashboard");
+  } catch (error) {
+    console.error("Login error:", error);
+    setError("Something went wrong. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <main className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-10">
@@ -20,7 +68,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form className="mt-8 space-y-5">
+        <form  onSubmit={handleSubmit} className="mt-8 space-y-5">
           <div>
             <label
               htmlFor="email"
@@ -66,13 +114,22 @@ export default function LoginPage() {
                 </Link>
             </div>
 
+            <div>
+                {error && (
+                    <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+                         {error}
+                     </p>
+                )}
+            </div>
 
-                <button
-                     type="submit"
-                     className="w-full rounded-lg bg-black px-5 py-3 font-medium text-white transition hover:bg-gray-800"
-                >
-                         Login
-                </button>
+
+               <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full rounded-lg bg-black px-5 py-3 font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+                     {loading ? "Logging in..." : "Login"}
+            </button>
 
 
         </form>

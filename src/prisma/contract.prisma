@@ -7,6 +7,15 @@ model User {
   email        String   @unique
   passwordHash String
   role         String   @default("student")
+   sessions     Session[]
   createdAt    TimestamptzString @default(now())
   updatedAt    temporal.updatedAtString()
+}
+
+model Session {
+  id        String             @id
+  userId    Int
+  user      User               @relation(fields: [userId], references: [id])
+  expiresAt TimestamptzString
+  createdAt TimestamptzString @default(now())
 }
